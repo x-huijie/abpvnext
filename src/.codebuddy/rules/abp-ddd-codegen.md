@@ -326,11 +326,60 @@ Xhj.Project.Domain.Shared/Localization/Project/zh-Hans.json
 4. `Application.Contracts`：`IXxxAppService`、Dto/输入、`ProjectPermissions` + Provider 注册、本地化。
 5. `Application`：`XxxAppService`（继承 `ProjectAppService`）+ Mapperly 映射 + `[Authorize]`。
 6. `HttpApi`：默认无需改动（约定式 API 自动暴露）。
-7. 编译验证：`dotnet build .\Xhj.Project.HttpApi.Host\Xhj.Project.HttpApi.Host.csproj`。
+7. 按第 11 节补齐完整中文注释（类型、成员、DTO 字段、常量、错误码、行内要点）。
+8. 编译验证：`dotnet build .\Xhj.Project.HttpApi.Host\Xhj.Project.HttpApi.Host.csproj`（要求 0 警告 0 错误）。
 
-## 11. 注释与风格
+## 11. 注释规范（强制：代码必须带完整中文注释）
 
-- 中文 XML doc 摘要仅对 public API 必要处添加（`CS1591` 已忽略，不需要到处写 `///`）。
-- 关键业务规则、非直觉写法必须写简短中文行内注释。
-- 使用 `Guard` 风格校验：`Check.NotNullOrWhiteSpace(...)`、`ObjectHelper.GetValueOrDefault(...)`。
+**基本要求：任何新写或修改的代码，必须做到"读注释即可理解业务"，不允许出现没有注释的 public 成员。**
+
+1. **类型注释（必须）**：每个 `class` / `interface` / `struct` / `enum` / `static class` 都必须写 `/// <summary>`，说明它的职责、所处分层、使用方；必要时加 `/// <remarks>` 补充设计取舍。
+2. **成员注释（必须）**：所有 `public` / `protected` 的构造函数、属性、字段、方法都要写 `/// <summary>`。
+3. **参数与返回值（必须）**：方法有两个及以上参数、或返回值含义不直观时，必须补 `/// <param>` 与 `/// <returns>`；参数含义见名知意时可省略，但**业务关键参数不可省**。
+4. **异常注释（推荐）**：会抛 `BusinessException` 的方法补 `/// <exception cref="BusinessException">`，说明触发条件（如编码重复、记录不存在）。
+5. **DTO 字段注释（必须）**：每个 DTO 属性都要写含义、是否必填、长度/取值约束来源（如"长度见 `DepartmentConsts.MaxNameLength`"）。
+6. **领域实体注释（必须）**：实体类说明它是聚合根还是子实体、维护什么不变式；每个属性注明业务含义；每个行为方法说明它维护的不变式与校验规则。
+7. **行内注释（必须）**：非直觉写法、协议约定（如 `grant_type`、`__tenant` 头）、算法要点、缓存/事务边界、为什么这么写（而非写了什么）都要有中文行内注释。
+8. **常量与错误码注释（必须）**：每个常量、每个错误码都要注明用途与来源；错误码注释需写明"何时抛出"。
+9. **禁止**：
+   - 禁止无意义的注释（如 `// 设置名称`、`// return result`）。
+   - 禁止中英文混杂的注释，统一简体中文。
+   - 禁止注释与代码不一致（改代码必须同步改注释）。
+
+### 注释模板
+
+```csharp
+/// <summary>
+/// 部门（组织机构）聚合根，通过 ParentId 自引用形成树形结构。
+/// </summary>
+/// <remarks>
+/// 不变式：Code 在同一租户内唯一；ParentId 必须指向已存在且非自身子孙的部门。
+/// </remarks>
+public class Department : FullAuditedAggregateRoot<Guid>, IMultiTenant
+{
+    /// <summary>
+    /// 部门编码，业务侧唯一标识，长度见 <see cref="DepartmentConsts.MaxCodeLength"/>。
+    /// </summary>
+    public virtual string Code { get; protected set; } = default!;
+
+    /// <summary>
+    /// 修改部门编码，并校验长度与同一租户内的唯一性。
+    /// </summary>
+    /// <param name="code">新的部门编码。</param>
+    /// <returns>当前实体，便于链式调用。</returns>
+    /// <exception cref="ArgumentException">编码为空或超长时抛出。</exception>
+    public virtual Department SetCode(string code)
+    {
+        Check.NotNullOrWhiteSpace(code, nameof(code), DepartmentConsts.MaxCodeLength);
+
+        Code = code;
+        return this;
+    }
+}
+```
+
+## 12. 其他风格
+
+- 使用 `Guard` 风格校验：`Check.NotNullOrWhiteSpace(...)`、`Check.NotNull(...)`。
 - 属性/方法上一律 `virtual`（便于 EF 代理与测试替换），内部调用亦然。
+- 写完代码后必须 `dotnet build` 验证 0 警告 0 错误，新增实体后必须补迁移。

@@ -9,6 +9,22 @@
     "Project:Auth:002": "The authentication server is not configured correctly!",
     "Project:Auth:003": "Failed to get the access token from the authentication server!",
     "Project:Auth:004": "Failed to refresh the access token!",
-    "Project:Auth:005": "The refresh token is invalid or expired!"
+    "Project:Auth:005": "The refresh token is invalid or expired!",
+    "Project:Department:001": "The department code '{Code}' is already used!",
+    "Project:Department:002": "The parent department does not exist!",
+    "Project:Department:003": "The department has sub departments and cannot be deleted!",
+    "Project:Department:004": "A department cannot be moved to itself or its own sub department!",
+    "Project:Dictionary:001": "The dictionary type code '{Code}' is already used!",
+    "Project:Dictionary:002": "The dictionary type does not exist!",
+    "Project:Dictionary:003": "The dictionary item value '{Value}' already exists in this type!",
+    "Permission:Departments": "Organization management",
+    "Permission:Departments.Create": "Create department",
+    "Permission:Departments.Update": "Update department",
+    "Permission:Departments.Delete": "Delete department",
+    "Permission:Departments.Move": "Move department",
+    "Permission:DataDictionaries": "Data dictionary management",
+    "Permission:DataDictionaries.Create": "Create dictionary",
+    "Permission:DataDictionaries.Update": "Update dictionary",
+    "Permission:DataDictionaries.Delete": "Delete dictionary"
   }
 }

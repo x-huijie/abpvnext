@@ -13,6 +13,9 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
+using Xhj.Project.DataDictionaries;
+using Xhj.Project.Departments;
+
 namespace Xhj.Project.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
@@ -24,6 +27,14 @@ public class ProjectDbContext :
     ITenantManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
+
+    // 组织机构（部门）
+    public DbSet<Department> Departments { get; set; }
+
+    // 数据字典
+    public DbSet<DictionaryType> DictionaryTypes { get; set; }
+
+    public DbSet<DictionaryItem> DictionaryItems { get; set; }
 
     #region Entities from the modules
 
@@ -74,13 +85,9 @@ public class ProjectDbContext :
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
 
-        /* Configure your own tables/entities inside here */
+        /* Configure your own tables/entities inside here
+         * 实体映射统一放在 IEntityTypeConfiguration<T> 中，这里统一装配 */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(ProjectConsts.DbTablePrefix + "YourEntities", ProjectConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.ApplyConfigurationsFromAssembly(typeof(ProjectDbContext).Assembly);
     }
 }

@@ -9,6 +9,22 @@
     "Project:Auth:002": "认证服务器配置不完整！",
     "Project:Auth:003": "从认证服务器获取访问令牌失败！",
     "Project:Auth:004": "刷新访问令牌失败！",
-    "Project:Auth:005": "刷新令牌无效或已过期！"
+    "Project:Auth:005": "刷新令牌无效或已过期！",
+    "Project:Department:001": "部门编码 “{Code}” 已被使用！",
+    "Project:Department:002": "上级部门不存在！",
+    "Project:Department:003": "该部门下存在子部门，不能删除！",
+    "Project:Department:004": "不能将部门移动到自身或其子部门下！",
+    "Project:Dictionary:001": "字典类型编码 “{Code}” 已被使用！",
+    "Project:Dictionary:002": "字典类型不存在！",
+    "Project:Dictionary:003": "该字典类型下已存在取值 “{Value}”！",
+    "Permission:Departments": "组织机构管理",
+    "Permission:Departments.Create": "新增部门",
+    "Permission:Departments.Update": "编辑部门",
+    "Permission:Departments.Delete": "删除部门",
+    "Permission:Departments.Move": "调整部门层级",
+    "Permission:DataDictionaries": "数据字典管理",
+    "Permission:DataDictionaries.Create": "新增字典",
+    "Permission:DataDictionaries.Update": "编辑字典",
+    "Permission:DataDictionaries.Delete": "删除字典"
   }
 }

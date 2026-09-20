@@ -85,7 +85,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
 
 
-        // 登录即对换取 Token 的客户端（password + refresh_token 模式）
+        // 登录即换取 Token 的客户端（password + refresh_token 模式），供 /api/app/auth/login 代理使用
         var passwordClientId = configurationSection["Project_App:ClientId"];
         if (!passwordClientId.IsNullOrWhiteSpace())
         {
