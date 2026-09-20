@@ -149,11 +149,15 @@ public class ProjectHttpApiHostModule : AbpModule
         ServiceConfigurationContext context,
         IConfiguration configuration)
     {
-        context.Services.AddSingleton<IDistributedLockProvider>(sp =>
+        var isEnabled =Convert.ToBoolean(configuration["Redis:IsEnabled"]);
+        if (isEnabled)
         {
-            var connection = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
-            return new RedisDistributedSynchronizationProvider(connection.GetDatabase());
-        });
+            context.Services.AddSingleton<IDistributedLockProvider>(sp =>
+            {
+                var connection = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
+                return new RedisDistributedSynchronizationProvider(connection.GetDatabase());
+            });
+        }
     }
 
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
