@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
+using Xhj.Project.Excel;
 using Xhj.Project.OperationLogs;
 using Xhj.Project.Permissions;
 
@@ -27,6 +30,8 @@ public class DepartmentAppService :
     private readonly DepartmentManager _departmentManager;
     private readonly IRepository<DepartmentMember, Guid> _departmentMemberRepository;
     private readonly IOperationLogWriter _operationLogWriter;
+    private readonly IExcelExporter _excelExporter;
+    private readonly IExcelImporter _excelImporter;
 
     /// <summary>
     /// 构造部门应用服务。
@@ -35,16 +40,22 @@ public class DepartmentAppService :
     /// <param name="departmentManager">部门领域服务。</param>
     /// <param name="departmentMemberRepository">部门成员仓储。</param>
     /// <param name="operationLogWriter">操作日志写入器，用于关键操作埋点。</param>
+    /// <param name="excelExporter">Excel 导出器。</param>
+    /// <param name="excelImporter">Excel 导入器。</param>
     public DepartmentAppService(
         IRepository<Department, Guid> repository,
         DepartmentManager departmentManager,
         IRepository<DepartmentMember, Guid> departmentMemberRepository,
-        IOperationLogWriter operationLogWriter)
+        IOperationLogWriter operationLogWriter,
+        IExcelExporter excelExporter,
+        IExcelImporter excelImporter)
         : base(repository)
     {
         _departmentManager = departmentManager;
         _departmentMemberRepository = departmentMemberRepository;
         _operationLogWriter = operationLogWriter;
+        _excelExporter = excelExporter;
+        _excelImporter = excelImporter;
     }
 
     /// <summary>
@@ -176,6 +187,20 @@ public class DepartmentAppService :
     }
 
     /// <summary>
+    /// 导出列的中英文表头映射。
+    /// </summary>
+    private static readonly Dictionary<string, string> DepartmentExportHeaders = new()
+    {
+        [nameof(DepartmentDto.Name)] = "部门名称",
+        [nameof(DepartmentDto.Code)] = "部门编码",
+        [nameof(DepartmentDto.Leader)] = "负责人",
+        [nameof(DepartmentDto.PhoneNumber)] = "联系电话",
+        [nameof(DepartmentDto.Sort)] = "排序",
+        [nameof(DepartmentDto.IsActive)] = "是否启用",
+        [nameof(DepartmentDto.Remark)] = "备注"
+    };
+
+    /// <summary>
     /// 查询部门成员。
     /// </summary>
     /// <param name="id">部门 Id。</param>
@@ -228,6 +253,121 @@ public class DepartmentAppService :
         }
 
         await _departmentMemberRepository.DeleteAsync(member, autoSave: true);
+    }
+
+    /// <summary>
+    /// 按当前筛选条件导出部门为 Excel。
+    /// </summary>
+    /// <param name="input">与列表一致的筛选与排序条件，分页参数会被忽略。</param>
+    /// <returns>xlsx 文件。</returns>
+    public virtual async Task<IRemoteStreamContent> ExportAsync(GetDepartmentListInput input)
+    {
+        // 导出不分页，按列表同样的筛选与排序条件取全量
+        input.MaxResultCount = int.MaxValue;
+
+        var query = await CreateFilteredQueryAsync(input);
+        query = ApplySorting(query, input);
+
+        var departments = await AsyncExecuter.ToListAsync(query);
+        var dtos = departments.Select(x => ObjectMapper.Map<Department, DepartmentDto>(x)).ToList();
+
+        var bytes = await _excelExporter.ExportAsync(dtos, "部门", DepartmentExportHeaders);
+
+        return new RemoteStreamContent(
+            new MemoryStream(bytes),
+            $"部门_{DateTime.Now:yyyyMMddHHmmss}.xlsx",
+            ExcelConsts.ExcelContentType);
+    }
+
+    /// <summary>
+    /// 从 Excel 批量导入部门。
+    /// </summary>
+    /// <param name="file">xlsx 文件。</param>
+    /// <returns>导入结果，单行失败不影响其他行。</returns>
+    [Authorize(ProjectPermissions.Departments.Create)]
+    public virtual async Task<ImportResultDto> ImportAsync(IRemoteStreamContent file)
+    {
+        var result = new ImportResultDto();
+
+        var rows = await _excelImporter.ImportAsync<DepartmentImportDto>(file.GetStream());
+        result.TotalCount = rows.Count;
+
+        var currentDepartments = await AsyncExecuter.ToListAsync(await Repository.GetQueryableAsync());
+        var codeToId = currentDepartments.ToDictionary(x => x.Code, x => x.Id);
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            var row = rows[index];
+            var rowNumber = index + 1;
+
+            try
+            {
+                await ImportSingleRowAsync(row, codeToId);
+                result.SuccessCount++;
+            }
+            catch (Exception ex)
+            {
+                // 单行失败只记录原因，继续处理后续行
+                result.FailedCount++;
+                result.Errors.Add(new ImportErrorDto
+                {
+                    RowNumber = rowNumber,
+                    RowContent = $"{row.Code}/{row.Name}",
+                    Message = ex.Message
+                });
+            }
+        }
+
+        await _operationLogWriter.WriteAsync(new WriteOperationLogInput
+        {
+            Module = nameof(Departments),
+            Operation = "批量导入部门",
+            OperationType = OperationType.Import,
+            Description = $"共 {result.TotalCount} 行，成功 {result.SuccessCount} 行，失败 {result.FailedCount} 行",
+            IsSuccess = result.FailedCount == 0
+        });
+
+        return result;
+    }
+
+    /// <summary>
+    /// 导入单行数据：把上级编码转换为 Id 后交由领域服务创建。
+    /// </summary>
+    /// <param name="row">Excel 行数据。</param>
+    /// <param name="codeToId">已有部门的"编码 → Id"映射，同时用于解析上级部门。</param>
+    /// <exception cref="BusinessException">必填缺失、编码重复或上级不存在时抛出。</exception>
+    private async Task ImportSingleRowAsync(DepartmentImportDto row, Dictionary<string, Guid> codeToId)
+    {
+        if (row.Name.IsNullOrWhiteSpace() || row.Code.IsNullOrWhiteSpace())
+        {
+            throw new BusinessException(ProjectDomainErrorCodes.DepartmentCodeAlreadyExists)
+                .WithData("Message", "部门名称与编码不能为空。");
+        }
+
+        Guid? parentId = null;
+
+        if (!row.ParentCode.IsNullOrWhiteSpace())
+        {
+            parentId = codeToId.TryGetValue(row.ParentCode!, out var id)
+                ? id
+                : throw new BusinessException(ProjectDomainErrorCodes.ParentDepartmentNotFound)
+                    .WithData("Code", row.ParentCode);
+        }
+
+        var department = await _departmentManager.CreateAsync(
+            row.Name!,
+            row.Code!,
+            parentId,
+            row.Leader,
+            row.PhoneNumber,
+            row.Sort,
+            row.Remark,
+            row.IsActive);
+
+        await Repository.InsertAsync(department, autoSave: true);
+
+        // 后续行可能以本行为上级，因此即时更新映射
+        codeToId[department.Code] = department.Id;
     }
 
     /// <summary>

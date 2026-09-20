@@ -378,7 +378,39 @@ public class Department : FullAuditedAggregateRoot<Guid>, IMultiTenant
 }
 ```
 
-## 12. 其他风格
+## 12. 列表查询、导入导出与编码生成规范
+
+### 12.1 分页查询 / 条件筛选 / 排序（统一写法）
+
+- 列表输入必须继承 `PagedAndSortedResultRequestDto`，筛选字段为**可空**类型（可空即"不过滤"）。
+- 过滤逻辑一律重写 `CreateFilteredQueryAsync`，用显式 `if` 判断叠加 `query = query.Where(...)`，**不要**依赖未确认的 `WhereIf` 扩展。
+- 排序交给基类 `ApplySorting(query, input)`，不手写 `OrderBy`。
+- 树/导出场景把 `input.MaxResultCount = int.MaxValue` 后一次性取全量。
+- 默认排序：列表按时间倒序；树按 `Sort` 再按名称。
+
+### 12.2 导出 Excel
+
+- 统一使用 `IExcelExporter.ExportAsync(data, sheetName, columnHeaders)`，**不直接在业务代码里操作 Excel 组件**。
+- 必须提供中文表头映射（`Dictionary<string, string>`，键为属性名）。
+- 返回类型固定为 `IRemoteStreamContent`，文件名带时间戳，ContentType 用 `ExcelConsts.ExcelContentType`。
+- 导出前校验行数上限（见 `ExcelConsts.MaxExportRows`）。
+
+### 12.3 导入 Excel
+
+- 统一使用 `IExcelImporter.ImportAsync<T>(stream)` 解析，业务服务再做校验与落库。
+- 导入行模型命名 `XxxImportDto`，属性名需与模板表头一致；**关联字段用业务编码而非 Id**（如 `ParentCode`）。
+- 必须逐行 try/catch 并返回 `ImportResultDto`（总数/成功/失败 + `ImportErrorDto` 明细），单行失败不影响其他行。
+- 导入完成后写一条操作日志（`OperationType.Import`）。
+
+### 12.4 编码生成器
+
+- 业务单号**一律**通过 `ICodeGeneratorAppService.GenerateAsync(ruleCode)` / `GenerateBatchAsync(ruleCode, count)` 获取，
+  禁止业务代码自行拼接流水号或自增字段。
+- 规则配置在 `CodeRule`（前缀、日期格式、分隔符、流水号位数、步长、重置周期）。
+- 生成器内部必须用**分布式锁**按规则标识串行（`IDistributedLockProvider.CreateLock(...)`），保证并发下不重号。
+- 规则标识 `Code` 一经使用不允许修改（业务侧按标识取号）。
+
+## 13. 其他风格
 
 - 使用 `Guard` 风格校验：`Check.NotNullOrWhiteSpace(...)`、`Check.NotNull(...)`。
 - 属性/方法上一律 `virtual`（便于 EF 代理与测试替换），内部调用亦然。

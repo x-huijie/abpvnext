@@ -131,6 +131,39 @@ public static class ProjectDomainErrorCodes
 
     #endregion
 
+    #region 编码规则
+
+    /// <summary>
+    /// 编码规则不存在：按规则标识查不到规则时抛出（Data 中会带 Code）。
+    /// </summary>
+    public const string CodeRuleNotFound = "Project:CodeRule:001";
+
+    /// <summary>
+    /// 编码规则标识重复：已存在相同 Code 的规则时抛出。
+    /// </summary>
+    public const string CodeRuleCodeAlreadyExists = "Project:CodeRule:002";
+
+    /// <summary>
+    /// 编码规则已停用：向停用规则申请单号时抛出。
+    /// </summary>
+    public const string CodeRuleDisabled = "Project:CodeRule:003";
+
+    #endregion
+
+    #region Excel 导入导出
+
+    /// <summary>
+    /// Excel 内容为空：导入文件没有任何数据行时抛出。
+    /// </summary>
+    public const string ExcelContentIsEmpty = "Project:Excel:001";
+
+    /// <summary>
+    /// Excel 行数超限：超过 <c>ExcelConsts</c> 中配置的上限时抛出。
+    /// </summary>
+    public const string ExcelRowsExceeded = "Project:Excel:002";
+
+    #endregion
+
     #region 文件上传
 
     /// <summary>

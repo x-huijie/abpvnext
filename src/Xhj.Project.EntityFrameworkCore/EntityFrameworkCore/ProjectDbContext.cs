@@ -13,6 +13,7 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
+using Xhj.Project.CodeRules;
 using Xhj.Project.DataDictionaries;
 using Xhj.Project.DataPermissions;
 using Xhj.Project.Departments;
@@ -52,6 +53,9 @@ public class ProjectDbContext :
 
     // 操作日志（手动埋点，区别于 ABP 审计日志）
     public DbSet<OperationLog> OperationLogs { get; set; }
+
+    // 编码规则（业务单号生成）
+    public DbSet<CodeRule> CodeRules { get; set; }
 
     // 站内消息
     public DbSet<Notification> Notifications { get; set; }

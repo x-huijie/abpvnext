@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
+using Xhj.Project.Excel;
 
 namespace Xhj.Project.Departments;
 
@@ -47,4 +49,18 @@ public interface IDepartmentAppService :
     /// <param name="id">部门 Id。</param>
     /// <param name="userId">用户 Id。</param>
     Task RemoveMemberAsync(Guid id, Guid userId);
+
+    /// <summary>
+    /// 按当前筛选条件导出部门为 Excel。
+    /// </summary>
+    /// <param name="input">与列表一致的筛选与排序条件，分页参数会被忽略。</param>
+    /// <returns>xlsx 文件。</returns>
+    Task<IRemoteStreamContent> ExportAsync(GetDepartmentListInput input);
+
+    /// <summary>
+    /// 从 Excel 批量导入部门。
+    /// </summary>
+    /// <param name="file">xlsx 文件，表头需与 <see cref="DepartmentImportDto"/> 一致。</param>
+    /// <returns>导入结果（成功/失败明细），失败行不影响其他行。</returns>
+    Task<ImportResultDto> ImportAsync(IRemoteStreamContent file);
 }

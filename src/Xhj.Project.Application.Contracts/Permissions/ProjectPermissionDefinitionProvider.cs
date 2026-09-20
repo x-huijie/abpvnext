@@ -53,6 +53,11 @@ public class ProjectPermissionDefinitionProvider : PermissionDefinitionProvider
 
         myGroup.AddPermission(ProjectPermissions.OperationLogs.Default, L("Permission:OperationLogs"));
 
+        var codeRulePermission = myGroup.AddPermission(ProjectPermissions.CodeRules.Default, L("Permission:CodeRules"));
+        codeRulePermission.AddChild(ProjectPermissions.CodeRules.Create, L("Permission:CodeRules.Create"));
+        codeRulePermission.AddChild(ProjectPermissions.CodeRules.Update, L("Permission:CodeRules.Update"));
+        codeRulePermission.AddChild(ProjectPermissions.CodeRules.Delete, L("Permission:CodeRules.Delete"));
+
         var notificationPermission = myGroup.AddPermission(ProjectPermissions.Notifications.Default,
             L("Permission:Notifications"));
         notificationPermission.AddChild(ProjectPermissions.Notifications.Send, L("Permission:Notifications.Send"));

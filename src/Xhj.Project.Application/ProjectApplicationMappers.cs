@@ -1,5 +1,6 @@
 using Riok.Mapperly.Abstractions;
 using Volo.Abp.Mapperly;
+using Xhj.Project.CodeRules;
 using Xhj.Project.DataDictionaries;
 using Xhj.Project.DataPermissions;
 using Xhj.Project.Departments;
@@ -103,6 +104,15 @@ public partial class ProjectApplicationMappers
     [MapperIgnoreSource(nameof(DataPermissionRule.DepartmentIds))]
     [MapperIgnoreTarget(nameof(DataPermissionRuleDto.DepartmentIds))]
     public partial DataPermissionRuleDto MapDataPermissionRuleToDto(DataPermissionRule rule);
+
+    /// <summary>
+    /// 编码规则实体转 DTO。
+    /// </summary>
+    /// <param name="codeRule">编码规则实体。</param>
+    /// <returns>编码规则 DTO。</returns>
+    [MapperIgnoreSource(nameof(CodeRule.ExtraProperties))]
+    [MapperIgnoreSource(nameof(CodeRule.ConcurrencyStamp))]
+    public partial CodeRuleDto MapCodeRuleToDto(CodeRule codeRule);
 
     /// <summary>
     /// 操作日志实体转 DTO。

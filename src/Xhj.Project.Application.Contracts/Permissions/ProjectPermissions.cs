@@ -76,6 +76,17 @@ public static class ProjectPermissions
     }
 
     /// <summary>
+    /// 编码规则（业务单号生成）。
+    /// </summary>
+    public static class CodeRules
+    {
+        public const string Default = GroupName + ".CodeRules";
+        public const string Create = Default + ".Create";
+        public const string Update = Default + ".Update";
+        public const string Delete = Default + ".Delete";
+    }
+
+    /// <summary>
     /// 站内消息。
     /// </summary>
     public static class Notifications
