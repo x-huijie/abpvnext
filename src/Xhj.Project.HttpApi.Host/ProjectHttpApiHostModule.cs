@@ -21,6 +21,7 @@ using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.FileSystem;
 using Xhj.Project.Auth;
 using Xhj.Project.Files;
+using Xhj.Project.OperationLogs;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -67,6 +68,17 @@ public class ProjectHttpApiHostModule : AbpModule
         ConfigureSwaggerServices(context, configuration);
         ConfigureAuthToken(context, configuration);
         ConfigureFileStoring(context, configuration, hostingEnvironment);
+        ConfigureRequestInfo(context);
+    }
+
+    /// <summary>
+    /// 注册请求环境信息适配器，供操作日志采集 IP 与 UserAgent。
+    /// </summary>
+    /// <param name="context">服务配置上下文。</param>
+    private void ConfigureRequestInfo(ServiceConfigurationContext context)
+    {
+        context.Services.AddHttpContextAccessor();
+        context.Services.AddTransient<IRequestInfoProvider, RequestInfoProvider>();
     }
 
     /// <summary>

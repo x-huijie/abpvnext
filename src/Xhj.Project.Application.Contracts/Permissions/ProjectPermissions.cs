@@ -67,6 +67,23 @@ public static class ProjectPermissions
         public const string Delete = Default + ".Delete";
     }
 
+    /// <summary>
+    /// 操作日志查询（手动埋点的重要业务操作）。
+    /// </summary>
+    public static class OperationLogs
+    {
+        public const string Default = GroupName + ".OperationLogs";
+    }
+
+    /// <summary>
+    /// 站内消息。
+    /// </summary>
+    public static class Notifications
+    {
+        public const string Default = GroupName + ".Notifications";
+        public const string Send = Default + ".Send";
+    }
+
     //Add your own permission names. Example:
     //public const string MyPermission1 = GroupName + ".MyPermission1";
 }

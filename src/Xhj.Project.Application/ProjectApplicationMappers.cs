@@ -5,6 +5,7 @@ using Xhj.Project.DataPermissions;
 using Xhj.Project.Departments;
 using Xhj.Project.Files;
 using Xhj.Project.Menus;
+using Xhj.Project.OperationLogs;
 
 namespace Xhj.Project;
 
@@ -102,6 +103,16 @@ public partial class ProjectApplicationMappers
     [MapperIgnoreSource(nameof(DataPermissionRule.DepartmentIds))]
     [MapperIgnoreTarget(nameof(DataPermissionRuleDto.DepartmentIds))]
     public partial DataPermissionRuleDto MapDataPermissionRuleToDto(DataPermissionRule rule);
+
+    /// <summary>
+    /// 操作日志实体转 DTO。
+    /// </summary>
+    /// <param name="operationLog">操作日志实体。</param>
+    /// <returns>操作日志 DTO（不含 UserAgent，避免列表响应过大）。</returns>
+    [MapperIgnoreSource(nameof(OperationLog.ExtraProperties))]
+    [MapperIgnoreSource(nameof(OperationLog.ConcurrencyStamp))]
+    [MapperIgnoreSource(nameof(OperationLog.UserAgent))]
+    public partial OperationLogDto MapOperationLogToDto(OperationLog operationLog);
 
     /// <summary>
     /// 文件记录实体转 DTO。

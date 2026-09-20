@@ -7,6 +7,7 @@ using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Xhj.Project.OperationLogs;
 using Xhj.Project.Permissions;
 
 namespace Xhj.Project.Departments;
@@ -25,6 +26,7 @@ public class DepartmentAppService :
 {
     private readonly DepartmentManager _departmentManager;
     private readonly IRepository<DepartmentMember, Guid> _departmentMemberRepository;
+    private readonly IOperationLogWriter _operationLogWriter;
 
     /// <summary>
     /// 构造部门应用服务。
@@ -32,14 +34,17 @@ public class DepartmentAppService :
     /// <param name="repository">部门仓储。</param>
     /// <param name="departmentManager">部门领域服务。</param>
     /// <param name="departmentMemberRepository">部门成员仓储。</param>
+    /// <param name="operationLogWriter">操作日志写入器，用于关键操作埋点。</param>
     public DepartmentAppService(
         IRepository<Department, Guid> repository,
         DepartmentManager departmentManager,
-        IRepository<DepartmentMember, Guid> departmentMemberRepository)
+        IRepository<DepartmentMember, Guid> departmentMemberRepository,
+        IOperationLogWriter operationLogWriter)
         : base(repository)
     {
         _departmentManager = departmentManager;
         _departmentMemberRepository = departmentMemberRepository;
+        _operationLogWriter = operationLogWriter;
     }
 
     /// <summary>
@@ -62,6 +67,17 @@ public class DepartmentAppService :
             input.IsActive);
 
         await Repository.InsertAsync(department, autoSave: true);
+
+        // 埋点示例：新增部门属于需要追溯的重要业务操作
+        await _operationLogWriter.WriteAsync(new WriteOperationLogInput
+        {
+            Module = nameof(Departments),
+            Operation = "新增部门",
+            OperationType = OperationType.Create,
+            Description = $"新增部门：{department.Name}（编码 {department.Code}）",
+            EntityType = typeof(Department).FullName,
+            EntityId = department.Id.ToString()
+        });
 
         return ObjectMapper.Map<Department, DepartmentDto>(department);
     }
@@ -106,6 +122,17 @@ public class DepartmentAppService :
         await _departmentManager.EnsureDeletableAsync(department);
 
         await Repository.DeleteAsync(department, autoSave: true);
+
+        // 埋点示例：删除数据必须留痕
+        await _operationLogWriter.WriteAsync(new WriteOperationLogInput
+        {
+            Module = nameof(Departments),
+            Operation = "删除部门",
+            OperationType = OperationType.Delete,
+            Description = $"删除部门：{department.Name}（编码 {department.Code}）",
+            EntityType = typeof(Department).FullName,
+            EntityId = department.Id.ToString()
+        });
     }
 
     /// <summary>

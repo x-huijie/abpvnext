@@ -50,6 +50,12 @@ public class ProjectPermissionDefinitionProvider : PermissionDefinitionProvider
         var filePermission = myGroup.AddPermission(ProjectPermissions.Files.Default, L("Permission:Files"));
         filePermission.AddChild(ProjectPermissions.Files.Upload, L("Permission:Files.Upload"));
         filePermission.AddChild(ProjectPermissions.Files.Delete, L("Permission:Files.Delete"));
+
+        myGroup.AddPermission(ProjectPermissions.OperationLogs.Default, L("Permission:OperationLogs"));
+
+        var notificationPermission = myGroup.AddPermission(ProjectPermissions.Notifications.Default,
+            L("Permission:Notifications"));
+        notificationPermission.AddChild(ProjectPermissions.Notifications.Send, L("Permission:Notifications.Send"));
     }
 
     /// <summary>

@@ -122,6 +122,15 @@ public static class ProjectDomainErrorCodes
 
     #endregion
 
+    #region 站内消息
+
+    /// <summary>
+    /// 消息不存在：按 Id 查不到该用户的站内消息时抛出。
+    /// </summary>
+    public const string UserNotificationNotFound = "Project:Notification:001";
+
+    #endregion
+
     #region 文件上传
 
     /// <summary>

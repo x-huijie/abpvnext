@@ -18,6 +18,8 @@ using Xhj.Project.DataPermissions;
 using Xhj.Project.Departments;
 using Xhj.Project.Files;
 using Xhj.Project.Menus;
+using Xhj.Project.Notifications;
+using Xhj.Project.OperationLogs;
 
 namespace Xhj.Project.EntityFrameworkCore;
 
@@ -47,6 +49,14 @@ public class ProjectDbContext :
 
     // 文件上传
     public DbSet<FileItem> Files { get; set; }
+
+    // 操作日志（手动埋点，区别于 ABP 审计日志）
+    public DbSet<OperationLog> OperationLogs { get; set; }
+
+    // 站内消息
+    public DbSet<Notification> Notifications { get; set; }
+
+    public DbSet<UserNotification> UserNotifications { get; set; }
 
     #region Entities from the modules
 

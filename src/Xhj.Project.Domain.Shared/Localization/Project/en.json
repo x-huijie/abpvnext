@@ -47,6 +47,10 @@
     "Permission:DataPermissions.Delete": "Delete data permission",
     "Permission:Files": "File management",
     "Permission:Files.Upload": "Upload file",
-    "Permission:Files.Delete": "Delete file"
+    "Permission:Files.Delete": "Delete file",
+    "Permission:OperationLogs": "Operation log",
+    "Permission:Notifications": "Notification",
+    "Permission:Notifications.Send": "Send notification",
+    "Project:Notification:001": "The notification does not exist!"
   }
 }
