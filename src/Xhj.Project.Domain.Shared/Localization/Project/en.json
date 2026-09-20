@@ -4,6 +4,11 @@
     "AppName": "Project",
     "Menu:Home": "Home",
     "Welcome": "Welcome",
-    "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information, visit abp.io."
+    "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information, visit abp.io.",
+    "Project:Auth:001": "Invalid user name or password!",
+    "Project:Auth:002": "The authentication server is not configured correctly!",
+    "Project:Auth:003": "Failed to get the access token from the authentication server!",
+    "Project:Auth:004": "Failed to refresh the access token!",
+    "Project:Auth:005": "The refresh token is invalid or expired!"
   }
 }

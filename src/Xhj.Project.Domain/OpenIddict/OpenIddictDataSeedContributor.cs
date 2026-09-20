@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using OpenIddict.Abstractions;
 using Volo.Abp;
+using Xhj.Project.Auth;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
@@ -83,6 +84,31 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
 
 
+
+        // 登录即对换取 Token 的客户端（password + refresh_token 模式）
+        var passwordClientId = configurationSection["Project_App:ClientId"];
+        if (!passwordClientId.IsNullOrWhiteSpace())
+        {
+            var passwordClientRootUrl = configurationSection["Project_App:RootUrl"]?.TrimEnd('/');
+
+            // offline_access 是签发 RefreshToken 的必要 scope
+            var passwordFlowScopes = new List<string>(commonScopes) { AuthConsts.OfflineAccessScope };
+
+            await CreateApplicationAsync(
+                name: passwordClientId!,
+                type: OpenIddictConstants.ClientTypes.Confidential,
+                consentType: OpenIddictConstants.ConsentTypes.Implicit,
+                displayName: "Project App",
+                secret: configurationSection["Project_App:ClientSecret"],
+                grantTypes: new List<string>
+                {
+                    OpenIddictConstants.GrantTypes.Password,
+                    OpenIddictConstants.GrantTypes.RefreshToken
+                },
+                scopes: passwordFlowScopes,
+                clientUri: passwordClientRootUrl
+            );
+        }
 
         // Swagger Client
         var swaggerClientId = configurationSection["Project_Swagger:ClientId"];

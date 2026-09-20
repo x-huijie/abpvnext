@@ -17,6 +17,7 @@ using Xhj.Project.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi;
 using Volo.Abp;
+using Xhj.Project.Auth;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -61,6 +62,31 @@ public class ProjectHttpApiHostModule : AbpModule
         ConfigureDistributedLocking(context, configuration);
         ConfigureCors(context, configuration);
         ConfigureSwaggerServices(context, configuration);
+        ConfigureAuthToken(context, configuration);
+    }
+
+    /// <summary>
+    /// 登录入口需要代理到 AuthServer 换取令牌，这里绑定配置并注册命名 HttpClient。
+    /// </summary>
+    private void ConfigureAuthToken(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        Configure<AuthTokenOptions>(options =>
+        {
+            var authServerSection = configuration.GetSection("AuthServer");
+
+            options.Authority = authServerSection["Authority"]
+                ?? throw new AbpException("请配置 AuthServer:Authority！");
+            options.ClientId = authServerSection["ClientId"]
+                ?? throw new AbpException("请配置 AuthServer:ClientId！");
+            options.ClientSecret = authServerSection["ClientSecret"]
+                ?? throw new AbpException("请配置 AuthServer:ClientSecret！");
+            options.Scope = authServerSection["Scope"] ?? options.Scope;
+        });
+
+        context.Services.AddHttpClient(AuthTokenClient.HttpClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
     }
 
     private void ConfigureCache(IConfiguration configuration)
