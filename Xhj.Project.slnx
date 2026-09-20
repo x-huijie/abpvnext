@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Xhj.Project.Application.Contracts/Xhj.Project.Application.Contracts.csproj" />
+    <Project Path="src/Xhj.Project.Application/Xhj.Project.Application.csproj" />
+    <Project Path="src/Xhj.Project.AuthServer/Xhj.Project.AuthServer.csproj" />
+    
+    
+    
+    
+    
+    
+    
+    
+    <Project Path="src/Xhj.Project.DbMigrator/Xhj.Project.DbMigrator.csproj" />
+    <Project Path="src/Xhj.Project.Domain.Shared/Xhj.Project.Domain.Shared.csproj" />
+    <Project Path="src/Xhj.Project.Domain/Xhj.Project.Domain.csproj" />
+    <Project Path="src/Xhj.Project.EntityFrameworkCore/Xhj.Project.EntityFrameworkCore.csproj" />
+    <Project Path="src/Xhj.Project.HttpApi.Client/Xhj.Project.HttpApi.Client.csproj" />
+    <Project Path="src/Xhj.Project.HttpApi.Host/Xhj.Project.HttpApi.Host.csproj" />
+    
+    <Project Path="src/Xhj.Project.HttpApi/Xhj.Project.HttpApi.csproj" />
+    
+    
+    
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Xhj.Project.Application.Tests/Xhj.Project.Application.Tests.csproj" />
+    <Project Path="test/Xhj.Project.Domain.Tests/Xhj.Project.Domain.Tests.csproj" />
+    <Project Path="test/Xhj.Project.EntityFrameworkCore.Tests/Xhj.Project.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/Xhj.Project.HttpApi.Client.ConsoleTestApp/Xhj.Project.HttpApi.Client.ConsoleTestApp.csproj" />
+    
+    <Project Path="test/Xhj.Project.TestBase/Xhj.Project.TestBase.csproj" />
+    
+  </Folder>
+</Solution>
