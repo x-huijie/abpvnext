@@ -1,7 +1,10 @@
 using Riok.Mapperly.Abstractions;
 using Volo.Abp.Mapperly;
 using Xhj.Project.DataDictionaries;
+using Xhj.Project.DataPermissions;
 using Xhj.Project.Departments;
+using Xhj.Project.Files;
+using Xhj.Project.Menus;
 
 namespace Xhj.Project;
 
@@ -40,6 +43,15 @@ public partial class ProjectApplicationMappers
     public partial DepartmentTreeDto MapDepartmentToTreeDto(Department department);
 
     /// <summary>
+    /// 部门成员实体转 DTO。
+    /// </summary>
+    /// <param name="member">部门成员实体。</param>
+    /// <returns>部门成员 DTO。</returns>
+    [MapperIgnoreSource(nameof(DepartmentMember.ExtraProperties))]
+    [MapperIgnoreSource(nameof(DepartmentMember.ConcurrencyStamp))]
+    public partial DepartmentMemberDto MapDepartmentMemberToDto(DepartmentMember member);
+
+    /// <summary>
     /// 字典类型实体转 DTO。
     /// </summary>
     /// <param name="dictionaryType">字典类型实体。</param>
@@ -56,4 +68,47 @@ public partial class ProjectApplicationMappers
     [MapperIgnoreSource(nameof(DictionaryItem.ExtraProperties))]
     [MapperIgnoreSource(nameof(DictionaryItem.ConcurrencyStamp))]
     public partial DictionaryItemDto MapDictionaryItemToDto(DictionaryItem dictionaryItem);
+
+    /// <summary>
+    /// 菜单实体转菜单 DTO。
+    /// </summary>
+    /// <param name="menu">菜单实体。</param>
+    /// <returns>菜单 DTO。</returns>
+    [MapperIgnoreSource(nameof(Menu.ExtraProperties))]
+    [MapperIgnoreSource(nameof(Menu.ConcurrencyStamp))]
+    public partial MenuDto MapMenuToDto(Menu menu);
+
+    /// <summary>
+    /// 菜单实体转菜单树节点。
+    /// </summary>
+    /// <param name="menu">菜单实体。</param>
+    /// <returns>树节点，Children 由应用服务组装。</returns>
+    [MapperIgnoreSource(nameof(Menu.ExtraProperties))]
+    [MapperIgnoreSource(nameof(Menu.ConcurrencyStamp))]
+    [MapperIgnoreTarget(nameof(MenuTreeDto.Children))]
+    public partial MenuTreeDto MapMenuToTreeDto(Menu menu);
+
+    /// <summary>
+    /// 数据权限规则实体转 DTO。
+    /// </summary>
+    /// <param name="rule">数据权限规则实体。</param>
+    /// <returns>规则 DTO，DepartmentIds 由字符串解析而来。</returns>
+    /// <remarks>
+    /// 源属性 DepartmentIds 是逗号分隔字符串，DTO 中是集合，
+    /// 二者类型不同无法自动映射，因此忽略后由映射后处理补齐。
+    /// </remarks>
+    [MapperIgnoreSource(nameof(DataPermissionRule.ExtraProperties))]
+    [MapperIgnoreSource(nameof(DataPermissionRule.ConcurrencyStamp))]
+    [MapperIgnoreSource(nameof(DataPermissionRule.DepartmentIds))]
+    [MapperIgnoreTarget(nameof(DataPermissionRuleDto.DepartmentIds))]
+    public partial DataPermissionRuleDto MapDataPermissionRuleToDto(DataPermissionRule rule);
+
+    /// <summary>
+    /// 文件记录实体转 DTO。
+    /// </summary>
+    /// <param name="fileItem">文件记录实体。</param>
+    /// <returns>文件 DTO。</returns>
+    [MapperIgnoreSource(nameof(FileItem.ExtraProperties))]
+    [MapperIgnoreSource(nameof(FileItem.ConcurrencyStamp))]
+    public partial FileItemDto MapFileItemToDto(FileItem fileItem);
 }

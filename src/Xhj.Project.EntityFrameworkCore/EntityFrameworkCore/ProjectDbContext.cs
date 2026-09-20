@@ -14,7 +14,10 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
 using Xhj.Project.DataDictionaries;
+using Xhj.Project.DataPermissions;
 using Xhj.Project.Departments;
+using Xhj.Project.Files;
+using Xhj.Project.Menus;
 
 namespace Xhj.Project.EntityFrameworkCore;
 
@@ -35,6 +38,15 @@ public class ProjectDbContext :
     public DbSet<DictionaryType> DictionaryTypes { get; set; }
 
     public DbSet<DictionaryItem> DictionaryItems { get; set; }
+
+    // 动态菜单
+    public DbSet<Menu> Menus { get; set; }
+
+    // 数据权限
+    public DbSet<DataPermissionRule> DataPermissionRules { get; set; }
+
+    // 文件上传
+    public DbSet<FileItem> Files { get; set; }
 
     #region Entities from the modules
 

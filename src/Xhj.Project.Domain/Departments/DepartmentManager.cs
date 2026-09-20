@@ -17,14 +17,19 @@ namespace Xhj.Project.Departments;
 public class DepartmentManager : DomainService
 {
     private readonly IRepository<Department, Guid> _departmentRepository;
+    private readonly IRepository<DepartmentMember, Guid> _departmentMemberRepository;
 
     /// <summary>
     /// 构造部门领域服务。
     /// </summary>
     /// <param name="departmentRepository">部门仓储。</param>
-    public DepartmentManager(IRepository<Department, Guid> departmentRepository)
+    /// <param name="departmentMemberRepository">部门成员仓储。</param>
+    public DepartmentManager(
+        IRepository<Department, Guid> departmentRepository,
+        IRepository<DepartmentMember, Guid> departmentMemberRepository)
     {
         _departmentRepository = departmentRepository;
+        _departmentMemberRepository = departmentMemberRepository;
     }
 
     /// <summary>
@@ -126,6 +131,31 @@ public class DepartmentManager : DomainService
             throw new BusinessException(ProjectDomainErrorCodes.DepartmentHasChildren)
                 .WithData("Name", department.Name);
         }
+    }
+
+    /// <summary>
+    /// 创建部门成员关系：校验该用户尚未加入该部门（未持久化）。
+    /// </summary>
+    /// <param name="departmentId">部门 Id。</param>
+    /// <param name="userId">用户 Id。</param>
+    /// <param name="isPrimary">是否为主部门。</param>
+    /// <returns>新建的部门成员。</returns>
+    /// <exception cref="BusinessException">该用户已在部门中时抛出。</exception>
+    public virtual async Task<DepartmentMember> CreateMemberAsync(
+        Guid departmentId,
+        Guid userId,
+        bool isPrimary)
+    {
+        var exists = await _departmentMemberRepository.AnyAsync(x =>
+            x.DepartmentId == departmentId && x.UserId == userId);
+
+        if (exists)
+        {
+            throw new BusinessException(ProjectDomainErrorCodes.DepartmentCodeAlreadyExists)
+                .WithData("Message", "该用户已经属于该部门。");
+        }
+
+        return new DepartmentMember(GuidGenerator.Create(), departmentId, userId, isPrimary);
     }
 
     /// <summary>

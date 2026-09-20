@@ -25,4 +25,26 @@ public interface IDepartmentAppService :
     /// <param name="input">新的上级部门 Id。</param>
     /// <returns>调整后的部门。</returns>
     Task<DepartmentDto> MoveAsync(Guid id, MoveDepartmentInput input);
+
+    /// <summary>
+    /// 查询部门成员。
+    /// </summary>
+    /// <param name="id">部门 Id。</param>
+    /// <returns>该部门的成员列表。</returns>
+    Task<ListResultDto<DepartmentMemberDto>> GetMembersAsync(Guid id);
+
+    /// <summary>
+    /// 往部门中添加成员（数据权限的"用户-部门"归属来源）。
+    /// </summary>
+    /// <param name="id">部门 Id。</param>
+    /// <param name="input">用户 Id 与是否主部门。</param>
+    /// <returns>新建的成员关系。</returns>
+    Task<DepartmentMemberDto> AddMemberAsync(Guid id, AddDepartmentMemberInput input);
+
+    /// <summary>
+    /// 从部门中移除成员。
+    /// </summary>
+    /// <param name="id">部门 Id。</param>
+    /// <param name="userId">用户 Id。</param>
+    Task RemoveMemberAsync(Guid id, Guid userId);
 }

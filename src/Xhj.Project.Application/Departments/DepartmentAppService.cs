@@ -24,18 +24,22 @@ public class DepartmentAppService :
     IDepartmentAppService
 {
     private readonly DepartmentManager _departmentManager;
+    private readonly IRepository<DepartmentMember, Guid> _departmentMemberRepository;
 
     /// <summary>
     /// 构造部门应用服务。
     /// </summary>
     /// <param name="repository">部门仓储。</param>
     /// <param name="departmentManager">部门领域服务。</param>
+    /// <param name="departmentMemberRepository">部门成员仓储。</param>
     public DepartmentAppService(
         IRepository<Department, Guid> repository,
-        DepartmentManager departmentManager)
+        DepartmentManager departmentManager,
+        IRepository<DepartmentMember, Guid> departmentMemberRepository)
         : base(repository)
     {
         _departmentManager = departmentManager;
+        _departmentMemberRepository = departmentMemberRepository;
     }
 
     /// <summary>
@@ -142,6 +146,61 @@ public class DepartmentAppService :
         await Repository.UpdateAsync(department, autoSave: true);
 
         return ObjectMapper.Map<Department, DepartmentDto>(department);
+    }
+
+    /// <summary>
+    /// 查询部门成员。
+    /// </summary>
+    /// <param name="id">部门 Id。</param>
+    /// <returns>成员列表。</returns>
+    public virtual async Task<ListResultDto<DepartmentMemberDto>> GetMembersAsync(Guid id)
+    {
+        var query = await _departmentMemberRepository.GetQueryableAsync();
+
+        var members = await AsyncExecuter.ToListAsync(
+            query.Where(x => x.DepartmentId == id).OrderByDescending(x => x.IsPrimary));
+
+        return new ListResultDto<DepartmentMemberDto>(
+            members.Select(x => ObjectMapper.Map<DepartmentMember, DepartmentMemberDto>(x)).ToList());
+    }
+
+    /// <summary>
+    /// 往部门中添加成员。
+    /// </summary>
+    /// <param name="id">部门 Id。</param>
+    /// <param name="input">用户 Id 与是否主部门。</param>
+    /// <returns>新建的成员关系。</returns>
+    /// <exception cref="BusinessException">用户已在部门中时抛出。</exception>
+    [Authorize(ProjectPermissions.Departments.ManageMembers)]
+    public virtual async Task<DepartmentMemberDto> AddMemberAsync(Guid id, AddDepartmentMemberInput input)
+    {
+        // 先确认部门存在，避免产生指向空部门的关系
+        await Repository.GetAsync(id);
+
+        var member = await _departmentManager.CreateMemberAsync(id, input.UserId, input.IsPrimary);
+
+        await _departmentMemberRepository.InsertAsync(member, autoSave: true);
+
+        return ObjectMapper.Map<DepartmentMember, DepartmentMemberDto>(member);
+    }
+
+    /// <summary>
+    /// 从部门中移除成员。
+    /// </summary>
+    /// <param name="id">部门 Id。</param>
+    /// <param name="userId">用户 Id。</param>
+    [Authorize(ProjectPermissions.Departments.ManageMembers)]
+    public virtual async Task RemoveMemberAsync(Guid id, Guid userId)
+    {
+        var member = await _departmentMemberRepository.FirstOrDefaultAsync(x =>
+            x.DepartmentId == id && x.UserId == userId);
+
+        if (member == null)
+        {
+            return;
+        }
+
+        await _departmentMemberRepository.DeleteAsync(member, autoSave: true);
     }
 
     /// <summary>

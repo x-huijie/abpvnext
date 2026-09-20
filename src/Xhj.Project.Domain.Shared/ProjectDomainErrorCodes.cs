@@ -83,4 +83,61 @@ public static class ProjectDomainErrorCodes
     public const string DictionaryItemValueAlreadyExists = "Project:Dictionary:003";
 
     #endregion
+
+    #region 菜单（动态菜单）
+
+    /// <summary>
+    /// 菜单标识重复：同一租户内已存在相同 Name 时抛出（Data 中会带 Name）。
+    /// </summary>
+    public const string MenuNameAlreadyExists = "Project:Menu:001";
+
+    /// <summary>
+    /// 上级菜单不存在：新增/移动时指定的 ParentId 查不到记录时抛出。
+    /// </summary>
+    public const string ParentMenuNotFound = "Project:Menu:002";
+
+    /// <summary>
+    /// 菜单下存在子菜单：删除菜单时存在下级节点则拒绝删除（Data 中会带 Name）。
+    /// </summary>
+    public const string MenuHasChildren = "Project:Menu:003";
+
+    /// <summary>
+    /// 非法移动：把菜单移动到自身或其子孙节点下时抛出。
+    /// </summary>
+    public const string CannotMoveMenuToChild = "Project:Menu:004";
+
+    #endregion
+
+    #region 数据权限
+
+    /// <summary>
+    /// 数据权限规则重复：同一角色在同一资源上已存在规则时抛出。
+    /// </summary>
+    public const string DataPermissionRuleAlreadyExists = "Project:DataPermission:001";
+
+    /// <summary>
+    /// 自定义范围未指定部门：Scope 为 Custom 但部门集合为空时抛出。
+    /// </summary>
+    public const string CustomScopeDepartmentRequired = "Project:DataPermission:002";
+
+    #endregion
+
+    #region 文件上传
+
+    /// <summary>
+    /// 文件大小超限：超过配置的最大字节数时抛出（Data 中会带 MaxSize）。
+    /// </summary>
+    public const string FileSizeExceeded = "Project:File:001";
+
+    /// <summary>
+    /// 文件类型不允许：扩展名不在白名单内时抛出（Data 中会带 Extension）。
+    /// </summary>
+    public const string FileExtensionNotAllowed = "Project:File:002";
+
+    /// <summary>
+    /// 文件记录不存在：按 Id 查不到文件记录时抛出。
+    /// </summary>
+    public const string FileNotFound = "Project:File:003";
+
+    #endregion
 }

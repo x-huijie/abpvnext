@@ -17,7 +17,10 @@ using Xhj.Project.MultiTenancy;
 using StackExchange.Redis;
 using Microsoft.OpenApi;
 using Volo.Abp;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.FileSystem;
 using Xhj.Project.Auth;
+using Xhj.Project.Files;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
@@ -63,6 +66,40 @@ public class ProjectHttpApiHostModule : AbpModule
         ConfigureCors(context, configuration);
         ConfigureSwaggerServices(context, configuration);
         ConfigureAuthToken(context, configuration);
+        ConfigureFileStoring(context, configuration, hostingEnvironment);
+    }
+
+    /// <summary>
+    /// 配置文件上传：绑定上传限制，并把业务文件容器指向本地文件系统。
+    /// </summary>
+    /// <param name="context">服务配置上下文。</param>
+    /// <param name="configuration">配置。</param>
+    /// <param name="hostingEnvironment">宿主环境，用于拼接本地存储根路径。</param>
+    private void ConfigureFileStoring(
+        ServiceConfigurationContext context,
+        IConfiguration configuration,
+        IWebHostEnvironment hostingEnvironment)
+    {
+        var fileOptions = configuration.GetSection("FileUpload").Get<FileUploadOptions>() ?? new FileUploadOptions();
+
+        Configure<FileUploadOptions>(options =>
+        {
+            options.MaxFileSize = fileOptions.MaxFileSize;
+            options.BasePath = fileOptions.BasePath;
+            options.AllowedExtensions = fileOptions.AllowedExtensions;
+        });
+
+        // 当前使用本地文件系统；将来换 OSS/MinIO 只需替换这里的 Provider
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.Configure<ProjectFileBlobContainer>(container =>
+            {
+                container.UseFileSystem(fileSystem =>
+                {
+                    fileSystem.BasePath = Path.Combine(hostingEnvironment.ContentRootPath, fileOptions.BasePath);
+                });
+            });
+        });
     }
 
     /// <summary>
